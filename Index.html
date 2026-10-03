@@ -1,0 +1,1204 @@
+```html
+<!DOCTYPE html>
+<html lang="id" class="h-full bg-slate-900 text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pigeon Loft & Pedigree Manager Pro</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0284c7',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #1e293b; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            body { background: white !important; color: black !important; }
+            .print-card { border: 1px solid #ccc !important; box-shadow: none !important; color: black !important; background: white !important; }
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col bg-slate-950 text-slate-100 overflow-x-hidden">
+
+    <!-- Top Navigation Bar -->
+    <header class="no-print bg-slate-900/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40 px-4 py-3">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-sky-500/20">
+                    <i class="fa-solid font-bold fa-dove text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+                        Pigeon Loft Pro <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-400 border border-sky-500/30">v2.5</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">Sistem Manajemen Kandang, Pedigree & Database Merpati Pos</p>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <nav class="flex items-center gap-1 bg-slate-950/60 p-1 rounded-xl border border-slate-800/80 overflow-x-auto">
+                <button onclick="switchTab('dashboard')" id="tab-dashboard" class="nav-btn px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-2 text-sky-400 bg-slate-800">
+                    <i class="fa-solid fa-chart-pie"></i> <span>Dashboard</span>
+                </button>
+                <button onclick="switchTab('pigeons')" id="tab-pigeons" class="nav-btn px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-2 text-slate-400 hover:text-slate-200">
+                    <i class="fa-solid fa-dove"></i> <span>Data Merpati</span>
+                </button>
+                <button onclick="switchTab('breeding')" id="tab-breeding" class="nav-btn px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-2 text-slate-400 hover:text-slate-200">
+                    <i class="fa-solid fa-egg"></i> <span>Breeding & Pairing</span>
+                </button>
+                <button onclick="switchTab('pedigree')" id="tab-pedigree" class="nav-btn px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-2 text-slate-400 hover:text-slate-200">
+                    <i class="fa-solid fa-sitemap"></i> <span>Cetak Pedigree</span>
+                </button>
+                <button onclick="switchTab('drive-sync')" id="tab-drive-sync" class="nav-btn px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-2 text-slate-400 hover:text-slate-200">
+                    <i class="fa-solid fa-cloud"></i> <span>Google Drive & Sheet</span>
+                </button>
+            </nav>
+
+            <!-- Quick Action Buttons -->
+            <div class="flex items-center gap-2">
+                <button onclick="openAddPigeonModal()" class="bg-sky-600 hover:bg-sky-500 text-white text-xs px-3.5 py-2 rounded-xl font-medium shadow-lg shadow-sky-600/20 transition flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i> <span>Tambah Merpati</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6">
+
+        <!-- DASHBOARD TAB -->
+        <div id="view-dashboard" class="tab-content space-y-6">
+            <!-- Summary Stats -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-slate-400">Total Populasi</p>
+                        <h3 id="stat-total-pigeons" class="text-2xl font-bold text-white mt-1">0</h3>
+                        <p class="text-[10px] text-sky-400 mt-0.5">Merpati Terdata</p>
+                    </div>
+                    <div class="w-11 h-11 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-dove"></i>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-slate-400">Indukan Aktif</p>
+                        <h3 id="stat-breeders" class="text-2xl font-bold text-emerald-400 mt-1">0</h3>
+                        <p class="text-[10px] text-emerald-400/80 mt-0.5">Jantan & Betina</p>
+                    </div>
+                    <div class="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-dna"></i>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-slate-400">Pasangan Breeding</p>
+                        <h3 id="stat-active-pairs" class="text-2xl font-bold text-amber-400 mt-1">0</h3>
+                        <p class="text-[10px] text-amber-400/80 mt-0.5">Kotak Kandang</p>
+                    </div>
+                    <div class="w-11 h-11 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-heart"></i>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-slate-400">Telur & Anakan (Piye)</p>
+                        <h3 id="stat-eggs-squabs" class="text-2xl font-bold text-purple-400 mt-1">0 / 0</h3>
+                        <p class="text-[10px] text-purple-400/80 mt-0.5">Eran Saat Ini</p>
+                    </div>
+                    <div class="w-11 h-11 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-egg"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Charts & Recent Activity -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Trah / Bloodline Breakdown -->
+                <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl lg:col-span-1 flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-pie-chart text-sky-400"></i> Distribusi Trah / Garis Darah
+                        </h3>
+                    </div>
+                    <div class="relative flex-1 min-h-[220px] flex items-center justify-center">
+                        <canvas id="bloodlineChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Recent Added Pigeons Quick List -->
+                <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl lg:col-span-2">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-clock-rotate-left text-sky-400"></i> Merpati Terakhir Ditambahkan
+                        </h3>
+                        <button onclick="switchTab('pigeons')" class="text-xs text-sky-400 hover:underline">Lihat Semua</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs text-slate-300">
+                            <thead class="text-[11px] text-slate-400 uppercase bg-slate-950/50 border-b border-slate-800">
+                                <tr>
+                                    <th class="p-2.5">Burung</th>
+                                    <th class="p-2.5">Ring</th>
+                                    <th class="p-2.5">Sex</th>
+                                    <th class="p-2.5">Trah</th>
+                                    <th class="p-2.5">Status</th>
+                                    <th class="p-2.5 text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recent-pigeons-table">
+                                <!-- JS Inserted -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PIGEONS MASTER TAB -->
+        <div id="view-pigeons" class="tab-content hidden space-y-4">
+            <!-- Filter & Search Header -->
+            <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl flex flex-col md:flex-row gap-3 items-center justify-between">
+                <div class="relative w-full md:w-80">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                    <input type="text" id="search-ring" onkeyup="filterPigeonsTable()" placeholder="Cari No Ring, Nama, atau Trah..." class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-xs rounded-xl pl-9 pr-3 py-2 focus:outline-none focus:border-sky-500">
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                    <select id="filter-sex" onchange="filterPigeonsTable()" class="bg-slate-950 border border-slate-800 text-slate-300 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-sky-500">
+                        <option value="">Semua Jenis Kelamin</option>
+                        <option value="Jantan">Jantan (Cock)</option>
+                        <option value="Betina">Betina (Hen)</option>
+                    </select>
+
+                    <select id="filter-status" onchange="filterPigeonsTable()" class="bg-slate-950 border border-slate-800 text-slate-300 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-sky-500">
+                        <option value="">Semua Status</option>
+                        <option value="Breeder">Breeder (Indukan)</option>
+                        <option value="Flyer">Flyer (Pembalap)</option>
+                        <option value="Youngster">Anakan / Piye</option>
+                        <option value="Afkir">Afkir / Sold</option>
+                    </select>
+
+                    <button onclick="openAddPigeonModal()" class="bg-sky-600 hover:bg-sky-500 text-white text-xs px-3 py-2 rounded-xl font-medium transition flex items-center gap-1.5 ml-auto">
+                        <i class="fa-solid fa-plus"></i> Tambah Data
+                    </button>
+                </div>
+            </div>
+
+            <!-- Pigeons Table -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden">
+                <div class="overflow-x-auto custom-scrollbar">
+                    <table class="w-full text-left text-xs text-slate-300">
+                        <thead class="text-[11px] text-slate-400 uppercase bg-slate-950 border-b border-slate-800">
+                            <tr>
+                                <th class="p-3">Foto Body</th>
+                                <th class="p-3">Foto Mata</th>
+                                <th class="p-3">Ring & Nama</th>
+                                <th class="p-3">Sex / Warna</th>
+                                <th class="p-3">Trah / Darah</th>
+                                <th class="p-3">Induk Jantan (Sire)</th>
+                                <th class="p-3">Induk Betina (Dam)</th>
+                                <th class="p-3">Status</th>
+                                <th class="p-3 text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pigeons-master-table" class="divide-y divide-slate-800/60">
+                            <!-- JS Inserted -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- BREEDING TAB -->
+        <div id="view-breeding" class="tab-content hidden space-y-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-base font-bold text-white">Manajemen Breeding & Eran</h2>
+                    <p class="text-xs text-slate-400">Kelola pasangan jodoh kandang, log penetasan, dan ring anakan</p>
+                </div>
+                <button onclick="openAddPairModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3.5 py-2 rounded-xl font-medium shadow-lg shadow-emerald-600/20 transition flex items-center gap-2">
+                    <i class="fa-solid fa-heart"></i> <span>Jodohkan Pasangan Baru</span>
+                </button>
+            </div>
+
+            <div id="pairs-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <!-- Pair Cards Inserted by JS -->
+            </div>
+        </div>
+
+        <!-- PEDIGREE TAB -->
+        <div id="view-pedigree" class="tab-content hidden space-y-6">
+            <!-- Pedigree Selector Header (No Print) -->
+            <div class="no-print bg-slate-900/80 border border-slate-800 p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-3 w-full sm:w-auto">
+                    <label class="text-xs font-semibold text-slate-300 whitespace-nowrap">Pilih Merpati Utama:</label>
+                    <select id="pedigree-select-ring" onchange="generatePedigreeView()" class="w-full sm:w-72 bg-slate-950 border border-slate-800 text-slate-200 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-sky-500">
+                        <!-- JS Inserted Options -->
+                    </select>
+                </div>
+
+                <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                    <button onclick="window.print()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-4 py-2 rounded-xl font-medium shadow-lg shadow-indigo-600/20 transition flex items-center gap-2">
+                        <i class="fa-solid fa-print"></i> <span>Cetak / Export PDF Pedigree</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Print Ready 4-Generation Pedigree Document Canvas -->
+            <div id="pedigree-card-printable" class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-2xl space-y-6 text-slate-100 print-card">
+                <!-- Header / Loft Logo -->
+                <div class="border-b border-slate-800 pb-4 flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-black uppercase tracking-wider text-sky-400">CERTIFICATE OF PEDIGREE</h2>
+                        <p id="pedigree-loft-name" class="text-xs font-semibold text-slate-300">ROYAL CHAMPION PIGEON LOFT - INDONESIA</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[10px] text-slate-500 uppercase tracking-widest block">Dokumen Resmi</span>
+                        <span id="pedigree-gen-date" class="text-xs font-mono text-slate-400">03-10-2026</span>
+                    </div>
+                </div>
+
+                <!-- Main Subject Pigeon Details Banner -->
+                <div id="pedigree-subject-header" class="bg-slate-950 border border-slate-800 rounded-xl p-4 flex flex-col md:flex-row gap-4 items-center">
+                    <!-- Photos -->
+                    <div class="flex items-center gap-3 shrink-0">
+                        <img id="pedigree-main-img-body" src="https://placehold.co/120x120/1e293b/0284c7?text=Body" class="w-20 h-20 rounded-lg object-cover border border-slate-700">
+                        <img id="pedigree-main-img-eye" src="https://placehold.co/120x120/1e293b/0284c7?text=Eye" class="w-20 h-20 rounded-full object-cover border-2 border-sky-500 shadow-md">
+                    </div>
+                    <!-- Details -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs w-full">
+                        <div>
+                            <span class="text-[10px] text-slate-500 block uppercase">Nomor Ring</span>
+                            <span id="ped-main-ring" class="font-bold text-sky-400 text-sm">INA 2026 889012</span>
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-slate-500 block uppercase">Nama / Alias</span>
+                            <span id="ped-main-name" class="font-semibold text-white">SKY WARRIOR</span>
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-slate-500 block uppercase">Sex / Warna</span>
+                            <span id="ped-main-sex-color" class="font-medium text-slate-300">Jantan / Kelabu</span>
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-slate-500 block uppercase">Trah / Darah</span>
+                            <span id="ped-main-trah" class="font-medium text-amber-400">Janssen Bros</span>
+                        </div>
+                        <div class="col-span-2 md:col-span-4 border-t border-slate-800/80 pt-2 mt-1">
+                            <span class="text-[10px] text-slate-500 block uppercase">Prestasi & Catatan Utama</span>
+                            <p id="ped-main-notes" class="text-xs italic text-slate-300">1st Place National Derby 500KM (1350 m/m), Pelempar anakan juara 2025.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4-Generation Tree Layout Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-[11px]">
+                    <!-- SIRE SIDE (Ayah) -->
+                    <div class="space-y-4 bg-sky-950/20 border border-sky-900/30 p-3 rounded-xl">
+                        <div class="text-xs font-bold text-sky-400 border-b border-sky-800/40 pb-1 flex justify-between">
+                            <span>JALUR AYAH (SIRE)</span>
+                            <i class="fa-solid fa-mars"></i>
+                        </div>
+                        
+                        <!-- Father (F1) -->
+                        <div id="ped-sire-box" class="bg-slate-950 border border-slate-800 p-2.5 rounded-lg space-y-1">
+                            <!-- Filled by JS -->
+                        </div>
+
+                        <!-- Paternal Grandparents (F2) -->
+                        <div class="space-y-2 pl-2 border-l-2 border-sky-600/40">
+                            <p class="text-[9px] uppercase font-semibold text-slate-500">Kakek & Nenek (Sektor Ayah)</p>
+                            <div id="ped-sire-sire-box" class="bg-slate-950 border border-slate-800 p-2 rounded-lg"></div>
+                            <div id="ped-sire-dam-box" class="bg-slate-950 border border-slate-800 p-2 rounded-lg"></div>
+                        </div>
+                    </div>
+
+                    <!-- DAM SIDE (Ibu) -->
+                    <div class="space-y-4 bg-rose-950/20 border border-rose-900/30 p-3 rounded-xl">
+                        <div class="text-xs font-bold text-rose-400 border-b border-rose-800/40 pb-1 flex justify-between">
+                            <span>JALUR IBU (DAM)</span>
+                            <i class="fa-solid fa-venus"></i>
+                        </div>
+
+                        <!-- Mother (F1) -->
+                        <div id="ped-dam-box" class="bg-slate-950 border border-slate-800 p-2.5 rounded-lg space-y-1">
+                            <!-- Filled by JS -->
+                        </div>
+
+                        <!-- Maternal Grandparents (F2) -->
+                        <div class="space-y-2 pl-2 border-l-2 border-rose-600/40">
+                            <p class="text-[9px] uppercase font-semibold text-slate-500">Kakek & Nenek (Sektor Ibu)</p>
+                            <div id="ped-dam-sire-box" class="bg-slate-950 border border-slate-800 p-2 rounded-lg"></div>
+                            <div id="ped-dam-dam-box" class="bg-slate-950 border border-slate-800 p-2 rounded-lg"></div>
+                        </div>
+                    </div>
+
+                    <!-- GREAT GRANDPARENTS (F3 Summary Column) -->
+                    <div class="space-y-3 bg-slate-950/60 border border-slate-800 p-3 rounded-xl">
+                        <div class="text-xs font-bold text-amber-400 border-b border-slate-800 pb-1">
+                            BUYUT (4TH GENERATION)
+                        </div>
+                        <div class="space-y-2 text-[10px]" id="ped-buyut-list">
+                            <!-- Filled by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pedigree Footer -->
+                <div class="pt-4 border-t border-slate-800 text-center text-[10px] text-slate-500 flex justify-between items-center">
+                    <span>Sistem Silsilah Resmi Pigeon Loft Pro</span>
+                    <span>Tanda Tangan Breeder: _____________________</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- GOOGLE DRIVE & SPREADSHEET SYNC TAB -->
+        <div id="view-drive-sync" class="tab-content hidden space-y-6">
+            <div class="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl space-y-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center text-2xl">
+                        <i class="fa-solid fa-file-excel"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-base font-bold text-white">Integrasi Google Sheets & Google Drive</h2>
+                        <p class="text-xs text-slate-400">Hubungkan database aplikasi dengan Spreadsheet dan folder Google Drive Anda</p>
+                    </div>
+                </div>
+
+                <!-- Google Apps Script Setup Guide -->
+                <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl space-y-3 text-xs text-slate-300">
+                    <h3 class="font-semibold text-sky-400 flex items-center gap-2">
+                        <i class="fa-solid fa-circle-info"></i> Panduan Hubungkan Ke Google Drive & Sheets (Gratis):
+                    </h3>
+                    <ol class="list-decimal pl-5 space-y-1.5 text-slate-400">
+                        <li>Buka Google Sheets baru di akun Google Anda.</li>
+                        <li>Klik menu <span class="text-slate-200 font-semibold">Extensions (Ekstensi) &gt; Apps Script</span>.</li>
+                        <li>Salin kode skrip otomatis di bawah ini lalu tempelkan di Apps Script editor.</li>
+                        <li>Klik <span class="text-slate-200 font-semibold">Deploy &gt; New Deployment &gt; Web App</span> (Akses: <i>Anyone / Siapa Saja</i>).</li>
+                        <li>Tempelkan **URL Web App** yang dihasilkan ke dalam kolom konfigurasi di bawah ini.</li>
+                    </ol>
+                </div>
+
+                <!-- WebApp URL Input -->
+                <div class="space-y-2">
+                    <label class="text-xs font-semibold text-slate-300">Google Apps Script Web App URL:</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="google-script-url" placeholder="https://script.google.com/macros/s/AKfycb.../exec" class="flex-1 bg-slate-950 border border-slate-800 text-slate-200 text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-sky-500">
+                        <button onclick="saveGoogleConfig()" class="bg-sky-600 hover:bg-sky-500 text-white text-xs px-4 py-2.5 rounded-xl font-medium transition">
+                            Simpan Connection
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Data Export / Import Buttons -->
+                <div class="pt-4 border-t border-slate-800 flex flex-wrap gap-3">
+                    <button onclick="exportToCSV()" class="bg-emerald-700 hover:bg-emerald-600 text-white text-xs px-4 py-2.5 rounded-xl font-medium transition flex items-center gap-2">
+                        <i class="fa-solid fa-file-csv"></i> <span>Download Spreadsheet (.CSV)</span>
+                    </button>
+                    <button onclick="syncToGoogleSheets()" class="bg-sky-700 hover:bg-sky-600 text-white text-xs px-4 py-2.5 rounded-xl font-medium transition flex items-center gap-2">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> <span>Sync Sekarang ke Google Sheets</span>
+                    </button>
+                </div>
+
+                <!-- Apps Script Code Copy Helper Box -->
+                <div class="pt-4 space-y-2">
+                    <label class="text-xs font-semibold text-slate-400 flex items-center justify-between">
+                        <span>Kode Google Apps Script Auto-Save (Drive + Sheets)</span>
+                        <button onclick="copyAppsScriptCode()" class="text-sky-400 hover:underline text-[11px]"><i class="fa-solid fa-copy"></i> Copy Script</button>
+                    </label>
+                    <textarea id="apps-script-code" readonly class="w-full h-40 bg-slate-950 border border-slate-800 text-slate-400 font-mono text-[11px] p-3 rounded-xl focus:outline-none custom-scrollbar"></textarea>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Application Footer -->
+    <footer class="no-print bg-slate-900/90 border-t border-slate-800/80 py-4 px-4 text-center text-xs text-slate-400 mt-auto">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+            <p>Pigeon Loft Pro &copy;2026 | Powered by. <a href="https://wied.web" target="_blank" rel="noopener noreferrer" class="text-sky-400 hover:text-sky-300 font-semibold underline underline-offset-2 transition">Ishbiruu Media</a></p>
+            <p class="text-[11px] text-slate-500">Sistem Manajemen Kandang & Pedigree Merpati Pos</p>
+        </div>
+    </footer>
+
+    <!-- MODAL: ADD / EDIT PIGEON -->
+    <div id="modal-pigeon" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-2xl rounded-2xl p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 id="modal-pigeon-title" class="text-sm font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-dove text-sky-400"></i> Tambah Data Merpati Pos
+                </h3>
+                <button onclick="closeModal('modal-pigeon')" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <form id="form-pigeon" onsubmit="handleSavePigeon(event)" class="space-y-4 text-xs">
+                <input type="hidden" id="pig-id">
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-slate-400 mb-1 font-medium">Nomor Ring Resmi *</label>
+                        <input type="text" id="pig-ring" required placeholder="Contoh: INA 2026 123456" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-sky-500">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 mb-1 font-medium">Nama / Julukan</label>
+                        <input type="text" id="pig-name" placeholder="Contoh: Barong / Thunder" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-sky-500">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-slate-400 mb-1 font-medium">Jenis Kelamin *</label>
+                        <select id="pig-sex" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-sky-500">
+                            <option value="Jantan">Jantan (Cock)</option>
+                            <option value="Betina">Betina (Hen)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 mb-1 font-medium">Warna Bulu</label>
+                        <input type="text" id="pig-color" placeholder="Kelabu / Titis / Gambas" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-sky-500">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 mb-1 font-medium">Warna / Eye Sign</label>
+                        <input type="text" id="pig-eye" placeholder="Mata Kuning / Pearl Eye" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-sky-500">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-slate-400 mb-1 font-medium">Trah / Garis Darah</label>
+                        <input type="text" id="pig-trah" placeholder="Janssen / Arden / Fabry" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-sky-500">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 mb-1 font-medium">Status Kandang</label>
+                        <select id="pig-status" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-sky-500">
+                            <option value="Breeder">Breeder (Indukan)</option>
+                            <option value="Flyer">Flyer (Pembalap)</option>
+                            <option value="Youngster">Anakan / Piye</option>
+                            <option value="Afkir">Afkir / Sold</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 mb-1 font-medium">Tahun Lahir</label>
+                        <input type="number" id="pig-year" placeholder="2026" value="2026" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-sky-500">
+                    </div>
+                </div>
+
+                <!-- Parents Ring Selectors -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 border-t border-slate-800 pt-3">
+                    <div>
+                        <label class="block text-slate-400 mb-1 font-medium">No Ring Ayah (Sire)</label>
+                        <select id="pig-sire" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-sky-500">
+                            <option value="">-- Tidak Ada / Import --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 mb-1 font-medium">No Ring Ibu (Dam)</label>
+                        <select id="pig-dam" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-sky-500">
+                            <option value="">-- Tidak Ada / Import --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Photo Storage Inputs -->
+                <div class="space-y-3 border-t border-slate-800 pt-3">
+                    <h4 class="font-semibold text-slate-300">Dokumentasi Foto (Penyimpanan Drive / URL / File)</h4>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-slate-400 mb-1">Foto Body Merpati</label>
+                            <input type="file" accept="image/*" onchange="previewImageFile(this, 'pig-img-body-url')" class="w-full text-slate-400 text-[11px]">
+                            <input type="hidden" id="pig-img-body-url">
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 mb-1">Foto Mata (Eye Sign)</label>
+                            <input type="file" accept="image/*" onchange="previewImageFile(this, 'pig-img-eye-url')" class="w-full text-slate-400 text-[11px]">
+                            <input type="hidden" id="pig-img-eye-url">
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-slate-400 mb-1 font-medium">Prestasi & Catatan Tambahan</label>
+                    <textarea id="pig-notes" rows="2" placeholder="Catatan lomba, karakter, atau riwayat kesehatan..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-200 focus:outline-none focus:border-sky-500"></textarea>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
+                    <button type="button" onclick="closeModal('modal-pigeon')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-4 py-2 rounded-xl">Batal</button>
+                    <button type="submit" class="bg-sky-600 hover:bg-sky-500 text-white text-xs px-5 py-2 rounded-xl font-medium">Simpan Data</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: ADD / EDIT PAIR -->
+    <div id="modal-pair" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-2xl p-6 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-heart text-emerald-400"></i> Buat Pasangan Jodoh Baru
+                </h3>
+                <button onclick="closeModal('modal-pair')" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <form id="form-pair" onsubmit="handleSavePair(event)" class="space-y-4 text-xs">
+                <div>
+                    <label class="block text-slate-400 mb-1 font-medium">Kode Kandang / Pairing ID *</label>
+                    <input type="text" id="pair-code" required placeholder="Contoh: PAIR-A01" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-slate-400 mb-1 font-medium">Jantan (Sire) *</label>
+                        <select id="pair-sire" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500">
+                            <!-- JS Inserted Male Breeders -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 mb-1 font-medium">Betina (Dam) *</label>
+                        <select id="pair-dam" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500">
+                            <!-- JS Inserted Female Breeders -->
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-slate-400 mb-1 font-medium">Tanggal Jodoh</label>
+                        <input type="date" id="pair-date" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 mb-1 font-medium">Nomor Kotak Kandang</label>
+                        <input type="text" id="pair-box" placeholder="Kotak #01" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500">
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
+                    <button type="button" onclick="closeModal('modal-pair')" class="bg-slate-800 text-slate-300 text-xs px-4 py-2 rounded-xl">Batal</button>
+                    <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-5 py-2 rounded-xl font-medium">Simpan Pasangan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Custom Notification Toast -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 space-y-2 pointer-events-none"></div>
+
+    <script>
+        // Default Sample Initial Pigeons Data (Realistic Loft Data)
+        let pigeons = [
+            {
+                id: 'P001',
+                ring: 'INA 2024 889012',
+                name: 'KING JANSSEN',
+                sex: 'Jantan',
+                color: 'Kelabu (Blue Bar)',
+                eye: 'Kuning (Yellow Eye)',
+                trah: 'Janssen Bros',
+                status: 'Breeder',
+                year: '2024',
+                sire: '',
+                dam: '',
+                imgBody: 'https://images.unsplash.com/photo-1552728089-57bdde30beb3?w=300&auto=format&fit=crop&q=60',
+                imgEye: 'https://images.unsplash.com/photo-1548681528-6a5c45b66b42?w=300&auto=format&fit=crop&q=60',
+                notes: 'Indukan Utama Jantan. Pelempar anakan berstamina tinggi.'
+            },
+            {
+                id: 'P002',
+                ring: 'INA 2024 889013',
+                name: 'QUEEN ARDEN',
+                sex: 'Betina',
+                color: 'Titis (Chequer)',
+                eye: 'Mata Putih (Pearl)',
+                trah: 'Jan Aarden',
+                status: 'Breeder',
+                year: '2024',
+                sire: '',
+                dam: '',
+                imgBody: 'https://images.unsplash.com/photo-1516571748831-5d81767bfa88?w=300&auto=format&fit=crop&q=60',
+                imgEye: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=300&auto=format&fit=crop&q=60',
+                notes: 'Indukan Utama Betina. Trah jarak jauh marathon.'
+            },
+            {
+                id: 'P003',
+                ring: 'INA 2025 112233',
+                name: 'SKY WARRIOR',
+                sex: 'Jantan',
+                color: 'Kelabu (Blue Bar)',
+                eye: 'Kuning (Yellow Eye)',
+                trah: 'Janssen x Aarden',
+                status: 'Flyer',
+                year: '2025',
+                sire: 'INA 2024 889012',
+                dam: 'INA 2024 889013',
+                imgBody: '',
+                imgEye: '',
+                notes: 'Juara 1 Pos 300KM Regional Pos. Kecepatan 1350 m/mnt.'
+            }
+        ];
+
+        let pairs = [
+            {
+                id: 'PAIR-A01',
+                sireRing: 'INA 2024 889012',
+                damRing: 'INA 2024 889013',
+                date: '2026-01-10',
+                box: 'Kotak #01',
+                egg1Date: '2026-01-18',
+                egg2Date: '2026-01-20',
+                status: 'Mengeram'
+            }
+        ];
+
+        let googleConfig = {
+            scriptUrl: localStorage.getItem('pigeon_app_script_url') || ''
+        };
+
+        // Initialize App on DOM Load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadLocalStorageData();
+            renderDashboard();
+            renderPigeonsMasterTable();
+            renderPairsGrid();
+            populatePedigreeDropdown();
+            generatePedigreeView();
+            initAppsScriptCodeTemplate();
+        });
+
+        function loadLocalStorageData() {
+            const savedPigeons = localStorage.getItem('pigeon_pro_data');
+            const savedPairs = localStorage.getItem('pigeon_pro_pairs');
+            if (savedPigeons) pigeons = JSON.parse(savedPigeons);
+            if (savedPairs) pairs = JSON.parse(savedPairs);
+        }
+
+        function saveData() {
+            localStorage.setItem('pigeon_pro_data', JSON.stringify(pigeons));
+            localStorage.setItem('pigeon_pro_pairs', JSON.stringify(pairs));
+            renderDashboard();
+            renderPigeonsMasterTable();
+            renderPairsGrid();
+            populatePedigreeDropdown();
+        }
+
+        // Tab Switching Logic
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('text-sky-400', 'bg-slate-800');
+                btn.classList.add('text-slate-400');
+            });
+
+            document.getElementById(`view-${tabId}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`tab-${tabId}`);
+            if (activeBtn) {
+                activeBtn.classList.add('text-sky-400', 'bg-slate-800');
+                activeBtn.classList.remove('text-slate-400');
+            }
+
+            if (tabId === 'dashboard') renderDashboardChart();
+            if (tabId === 'pedigree') generatePedigreeView();
+        }
+
+        // Render Dashboard Statistics & Chart
+        let bloodlineChartInstance = null;
+        function renderDashboard() {
+            document.getElementById('stat-total-pigeons').innerText = pigeons.length;
+            const breeders = pigeons.filter(p => p.status === 'Breeder').length;
+            document.getElementById('stat-breeders').innerText = breeders;
+            document.getElementById('stat-active-pairs').innerText = pairs.length;
+            document.getElementById('stat-eggs-squabs').innerText = `${pairs.length * 2} Telur`;
+
+            // Recent pigeons table
+            const tbody = document.getElementById('recent-pigeons-table');
+            tbody.innerHTML = '';
+            pigeons.slice(-5).reverse().forEach(p => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-800/40 border-b border-slate-800/40">
+                        <td class="p-2.5 font-medium text-white">${p.name || 'Terdata'}</td>
+                        <td class="p-2.5 font-mono text-sky-400">${p.ring}</td>
+                        <td class="p-2.5">${p.sex}</td>
+                        <td class="p-2.5 text-amber-400">${p.trah || '-'}</td>
+                        <td class="p-2.5"><span class="px-2 py-0.5 rounded-full text-[10px] bg-slate-800 text-slate-300 border border-slate-700">${p.status}</span></td>
+                        <td class="p-2.5 text-right">
+                            <button onclick="selectAndGeneratePedigree('${p.ring}')" class="text-sky-400 hover:text-sky-300 font-semibold text-[11px]"><i class="fa-solid fa-sitemap"></i> Pedigree</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            renderDashboardChart();
+        }
+
+        function renderDashboardChart() {
+            const ctx = document.getElementById('bloodlineChart');
+            if (!ctx) return;
+
+            // Group by Trah
+            const counts = {};
+            pigeons.forEach(p => {
+                const t = p.trah || 'Lainnya';
+                counts[t] = (counts[t] || 0) + 1;
+            });
+
+            const labels = Object.keys(counts);
+            const data = Object.values(counts);
+
+            if (bloodlineChartInstance) bloodlineChartInstance.destroy();
+
+            bloodlineChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: ['#0284c7', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#64748b']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 10 } } }
+                    }
+                }
+            });
+        }
+
+        function renderPigeonsMasterTable() {
+            const tbody = document.getElementById('pigeons-master-table');
+            tbody.innerHTML = '';
+
+            pigeons.forEach(p => {
+                const bodyImg = p.imgBody || 'https://placehold.co/80x80/1e293b/0284c7?text=Body';
+                const eyeImg = p.imgEye || 'https://placehold.co/80x80/1e293b/0284c7?text=Eye';
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-800/40">
+                        <td class="p-3">
+                            <img src="${bodyImg}" class="w-10 h-10 rounded-lg object-cover border border-slate-700">
+                        </td>
+                        <td class="p-3">
+                            <img src="${eyeImg}" class="w-10 h-10 rounded-full object-cover border border-sky-500">
+                        </td>
+                        <td class="p-3">
+                            <div class="font-bold text-sky-400 font-mono">${p.ring}</div>
+                            <div class="text-[11px] text-slate-300">${p.name || '-'}</div>
+                        </td>
+                        <td class="p-3">
+                            <div>${p.sex === 'Jantan' ? '<i class="fa-solid fa-mars text-sky-400"></i> Jantan' : '<i class="fa-solid fa-venus text-rose-400"></i> Betina'}</div>
+                            <div class="text-[10px] text-slate-400">${p.color || '-'}</div>
+                        </td>
+                        <td class="p-3 font-semibold text-amber-400">${p.trah || '-'}</td>
+                        <td class="p-3 font-mono text-[11px] text-slate-400">${p.sire || '-'}</td>
+                        <td class="p-3 font-mono text-[11px] text-slate-400">${p.dam || '-'}</td>
+                        <td class="p-3">
+                            <span class="px-2 py-0.5 rounded-full text-[10px] ${p.status === 'Breeder' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'bg-slate-800 text-slate-300'}">${p.status}</span>
+                        </td>
+                        <td class="p-3 text-center">
+                            <div class="flex items-center justify-center gap-2">
+                                <button onclick="selectAndGeneratePedigree('${p.ring}')" title="Lihat Pedigree" class="p-1.5 rounded-lg bg-sky-500/10 text-sky-400 hover:bg-sky-500/20"><i class="fa-solid fa-sitemap"></i></button>
+                                <button onclick="openEditPigeonModal('${p.id}')" title="Edit" class="p-1.5 rounded-lg bg-amber-500/10 text-amber-400 hover:bg-amber-500/20"><i class="fa-solid fa-pen"></i></button>
+                                <button onclick="deletePigeon('${p.id}')" title="Hapus" class="p-1.5 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500/20"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function filterPigeonsTable() {
+            const query = document.getElementById('search-ring').value.toLowerCase();
+            const sex = document.getElementById('filter-sex').value;
+            const status = document.getElementById('filter-status').value;
+
+            const rows = document.querySelectorAll('#pigeons-master-table tr');
+            rows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                const matchesQuery = text.includes(query);
+                const matchesSex = !sex || text.includes(sex.toLowerCase());
+                const matchesStatus = !status || text.includes(status.toLowerCase());
+
+                if (matchesQuery && matchesSex && matchesStatus) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        function openAddPigeonModal() {
+            document.getElementById('form-pigeon').reset();
+            document.getElementById('pig-id').value = '';
+            document.getElementById('modal-pigeon-title').innerHTML = '<i class="fa-solid fa-dove text-sky-400"></i> Tambah Data Merpati Pos';
+            populateParentsSelectors();
+            document.getElementById('modal-pigeon').classList.remove('hidden');
+        }
+
+        function openEditPigeonModal(id) {
+            const p = pigeons.find(item => item.id === id);
+            if (!p) return;
+
+            document.getElementById('pig-id').value = p.id;
+            document.getElementById('pig-ring').value = p.ring;
+            document.getElementById('pig-name').value = p.name || '';
+            document.getElementById('pig-sex').value = p.sex;
+            document.getElementById('pig-color').value = p.color || '';
+            document.getElementById('pig-eye').value = p.eye || '';
+            document.getElementById('pig-trah').value = p.trah || '';
+            document.getElementById('pig-status').value = p.status;
+            document.getElementById('pig-year').value = p.year || '2026';
+            document.getElementById('pig-img-body-url').value = p.imgBody || '';
+            document.getElementById('pig-img-eye-url').value = p.imgEye || '';
+            document.getElementById('pig-notes').value = p.notes || '';
+
+            populateParentsSelectors(p.sire, p.dam);
+            document.getElementById('modal-pigeon-title').innerHTML = '<i class="fa-solid fa-pen text-amber-400"></i> Edit Data Merpati';
+            document.getElementById('modal-pigeon').classList.remove('hidden');
+        }
+
+        function populateParentsSelectors(selectedSire = '', selectedDam = '') {
+            const sireSelect = document.getElementById('pig-sire');
+            const damSelect = document.getElementById('pig-dam');
+
+            sireSelect.innerHTML = '<option value="">-- Tidak Ada / Import --</option>';
+            damSelect.innerHTML = '<option value="">-- Tidak Ada / Import --</option>';
+
+            pigeons.forEach(p => {
+                if (p.sex === 'Jantan') {
+                    sireSelect.innerHTML += `<option value="${p.ring}" ${p.ring === selectedSire ? 'selected' : ''}>${p.ring} - ${p.name || 'Jantan'}</option>`;
+                } else if (p.sex === 'Betina') {
+                    damSelect.innerHTML += `<option value="${p.ring}" ${p.ring === selectedDam ? 'selected' : ''}>${p.ring} - ${p.name || 'Betina'}</option>`;
+                }
+            });
+        }
+
+        function previewImageFile(input, targetHiddenId) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById(targetHiddenId).value = e.target.result;
+                    showToast('Foto berhasil dimuat!', 'success');
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function handleSavePigeon(e) {
+            e.preventDefault();
+            const id = document.getElementById('pig-id').value;
+            const ring = document.getElementById('pig-ring').value.trim();
+
+            const pData = {
+                id: id || 'P' + Date.now(),
+                ring: ring,
+                name: document.getElementById('pig-name').value.trim(),
+                sex: document.getElementById('pig-sex').value,
+                color: document.getElementById('pig-color').value.trim(),
+                eye: document.getElementById('pig-eye').value.trim(),
+                trah: document.getElementById('pig-trah').value.trim(),
+                status: document.getElementById('pig-status').value,
+                year: document.getElementById('pig-year').value,
+                sire: document.getElementById('pig-sire').value,
+                dam: document.getElementById('pig-dam').value,
+                imgBody: document.getElementById('pig-img-body-url').value,
+                imgEye: document.getElementById('pig-img-eye-url').value,
+                notes: document.getElementById('pig-notes').value.trim()
+            };
+
+            if (id) {
+                const index = pigeons.findIndex(item => item.id === id);
+                if (index !== -1) pigeons[index] = pData;
+            } else {
+                pigeons.push(pData);
+            }
+
+            saveData();
+            closeModal('modal-pigeon');
+            showToast('Data merpati berhasil disimpan!', 'success');
+        }
+
+        function deletePigeon(id) {
+            if (confirm('Apakah Anda yakin ingin menghapus data merpati ini?')) {
+                pigeons = pigeons.filter(p => p.id !== id);
+                saveData();
+                showToast('Merpati berhasil dihapus.', 'info');
+            }
+        }
+
+        function renderPairsGrid() {
+            const grid = document.getElementById('pairs-grid');
+            grid.innerHTML = '';
+
+            pairs.forEach(pair => {
+                const sire = pigeons.find(p => p.ring === pair.sireRing) || { ring: pair.sireRing, name: 'Jantan' };
+                const dam = pigeons.find(p => p.ring === pair.damRing) || { ring: pair.damRing, name: 'Betina' };
+
+                grid.innerHTML += `
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3 relative">
+                        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                            <span class="text-xs font-bold text-emerald-400 font-mono">${pair.id}</span>
+                            <span class="text-[10px] text-slate-400 bg-slate-950 px-2 py-0.5 rounded-full border border-slate-800">${pair.box || 'Kotak'}</span>
+                        </div>
+
+                        <!-- Sire & Dam Cards -->
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <div class="bg-sky-950/30 border border-sky-900/40 p-2 rounded-xl">
+                                <span class="text-[9px] text-sky-400 font-bold block uppercase"><i class="fa-solid fa-mars"></i> Jantan (Sire)</span>
+                                <div class="font-bold text-slate-200 mt-1 font-mono">${sire.ring}</div>
+                                <div class="text-[10px] text-slate-400">${sire.name || '-'}</div>
+                            </div>
+                            <div class="bg-rose-950/30 border border-rose-900/40 p-2 rounded-xl">
+                                <span class="text-[9px] text-rose-400 font-bold block uppercase"><i class="fa-solid fa-venus"></i> Betina (Dam)</span>
+                                <div class="font-bold text-slate-200 mt-1 font-mono">${dam.ring}</div>
+                                <div class="text-[10px] text-slate-400">${dam.name || '-'}</div>
+                            </div>
+                        </div>
+
+                        <!-- Eran Log -->
+                        <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 text-[11px] space-y-1">
+                            <div class="flex justify-between text-slate-400">
+                                <span>Tgl Dijodohkan:</span>
+                                <span class="text-slate-200">${pair.date || '-'}</span>
+                            </div>
+                            <div class="flex justify-between text-slate-400">
+                                <span>Estimasi Menetas:</span>
+                                <span class="text-amber-400 font-semibold">18 Hari Setelah Telur #2</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function openAddPairModal() {
+            const sireSelect = document.getElementById('pair-sire');
+            const damSelect = document.getElementById('pair-dam');
+            sireSelect.innerHTML = '';
+            damSelect.innerHTML = '';
+
+            pigeons.filter(p => p.sex === 'Jantan').forEach(p => {
+                sireSelect.innerHTML += `<option value="${p.ring}">${p.ring} - ${p.name || 'Jantan'}</option>`;
+            });
+            pigeons.filter(p => p.sex === 'Betina').forEach(p => {
+                damSelect.innerHTML += `<option value="${p.ring}">${p.ring} - ${p.name || 'Betina'}</option>`;
+            });
+
+            document.getElementById('modal-pair').classList.remove('hidden');
+        }
+
+        function handleSavePair(e) {
+            e.preventDefault();
+            const pairObj = {
+                id: document.getElementById('pair-code').value.trim(),
+                sireRing: document.getElementById('pair-sire').value,
+                damRing: document.getElementById('pair-dam').value,
+                date: document.getElementById('pair-date').value,
+                box: document.getElementById('pair-box').value.trim()
+            };
+
+            pairs.push(pairObj);
+            saveData();
+            closeModal('modal-pair');
+            showToast('Pasangan breeding berhasil ditambahkan!', 'success');
+        }
+
+        function populatePedigreeDropdown() {
+            const select = document.getElementById('pedigree-select-ring');
+            select.innerHTML = '';
+            pigeons.forEach(p => {
+                select.innerHTML += `<option value="${p.ring}">${p.ring} - ${p.name || 'Terdata'}</option>`;
+            });
+        }
+
+        function selectAndGeneratePedigree(ring) {
+            switchTab('pedigree');
+            document.getElementById('pedigree-select-ring').value = ring;
+            generatePedigreeView();
+        }
+
+        function findPigeonByRing(ring) {
+            return pigeons.find(p => p.ring === ring) || null;
+        }
+
+        function generatePedigreeView() {
+            const ring = document.getElementById('pedigree-select-ring').value;
+            const main = findPigeonByRing(ring);
+
+            if (!main) return;
+
+            // Fill main subject
+            document.getElementById('ped-main-ring').innerText = main.ring;
+            document.getElementById('ped-main-name').innerText = main.name || '-';
+            document.getElementById('ped-main-sex-color').innerText = `${main.sex} / ${main.color || '-'}`;
+            document.getElementById('ped-main-trah').innerText = main.trah || '-';
+            document.getElementById('ped-main-notes').innerText = main.notes || 'Tidak ada catatan khusus.';
+            document.getElementById('pedigree-gen-date').innerText = new Date().toLocaleDateString('id-ID');
+
+            if (main.imgBody) document.getElementById('pedigree-main-img-body').src = main.imgBody;
+            if (main.imgEye) document.getElementById('pedigree-main-img-eye').src = main.imgEye;
+
+            // Parents (F1)
+            const sire = findPigeonByRing(main.sire);
+            const dam = findPigeonByRing(main.dam);
+
+            renderPedigreeBox('ped-sire-box', sire, 'AYAH (SIRE)', main.sire);
+            renderPedigreeBox('ped-dam-box', dam, 'IBU (DAM)', main.dam);
+
+            // Grandparents (F2)
+            const sireSire = sire ? findPigeonByRing(sire.sire) : null;
+            const sireDam = sire ? findPigeonByRing(sire.dam) : null;
+            const damSire = dam ? findPigeonByRing(dam.sire) : null;
+            const damDam = dam ? findPigeonByRing(dam.dam) : null;
+
+            renderPedigreeBox('ped-sire-sire-box', sireSire, 'Kakek (Sektor Ayah)', sire ? sire.sire : '');
+            renderPedigreeBox('ped-sire-dam-box', sireDam, 'Nenek (Sektor Ayah)', sire ? sire.dam : '');
+            renderPedigreeBox('ped-dam-sire-box', damSire, 'Kakek (Sektor Ibu)', dam ? dam.sire : '');
+            renderPedigreeBox('ped-dam-dam-box', damDam, 'Nenek (Sektor Ibu)', dam ? dam.dam : '');
+
+            // Great Grandparents (F3 Summary List)
+            const buyutContainer = document.getElementById('ped-buyut-list');
+            buyutContainer.innerHTML = `
+                <div class="bg-slate-900 p-2 rounded border border-slate-800"><b>Buyut #1 (F3):</b> ${sireSire?.sire || 'N/A'}</div>
+                <div class="bg-slate-900 p-2 rounded border border-slate-800"><b>Buyut #2 (F3):</b> ${sireSire?.dam || 'N/A'}</div>
+                <div class="bg-slate-900 p-2 rounded border border-slate-800"><b>Buyut #3 (F3):</b> ${sireDam?.sire || 'N/A'}</div>
+                <div class="bg-slate-900 p-2 rounded border border-slate-800"><b>Buyut #4 (F3):</b> ${sireDam?.dam || 'N/A'}</div>
+            `;
+        }
+
+        function renderPedigreeBox(elementId, p, label, fallbackRing) {
+            const container = document.getElementById(elementId);
+            if (!container) return;
+
+            if (p) {
+                container.innerHTML = `
+                    <div class="text-[9px] font-bold text-slate-500 uppercase">${label}</div>
+                    <div class="font-bold text-sky-400 font-mono">${p.ring}</div>
+                    <div class="font-semibold text-slate-200">${p.name || '-'}</div>
+                    <div class="text-[10px] text-amber-400">Trah: ${p.trah || '-'}</div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div class="text-[9px] font-bold text-slate-500 uppercase">${label}</div>
+                    <div class="font-mono text-slate-500">${fallbackRing || 'Belum Terdata'}</div>
+                `;
+            }
+        }
+
+        function initAppsScriptCodeTemplate() {
+            const code = `// GOOGLE APPS SCRIPT CODE UNTUK GOOGLE SHEETS & DRIVE AUTOMATION
+function doPost(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var data = JSON.parse(e.postData.contents);
+  
+  if (data.action === "sync_pigeons") {
+    sheet.clear();
+    sheet.appendRow(["Ring", "Nama", "Sex", "Warna", "Eye Sign", "Trah", "Status", "Ayah", "Ibu", "Catatan"]);
+    
+    data.pigeons.forEach(function(p) {
+      sheet.appendRow([p.ring, p.name, p.sex, p.color, p.eye, p.trah, p.status, p.sire, p.dam, p.notes]);
+    });
+    
+    return ContentService.createTextOutput(JSON.stringify({status: "success"})).setMimeType(ContentService.MimeType.JSON);
+  }
+}`;
+            document.getElementById('apps-script-code').value = code;
+        }
+
+        function copyAppsScriptCode() {
+            const area = document.getElementById('apps-script-code');
+            area.select();
+            document.execCommand('copy');
+            showToast('Kode Google Apps Script disalin!', 'success');
+        }
+
+        function saveGoogleConfig() {
+            const url = document.getElementById('google-script-url').value.trim();
+            localStorage.setItem('pigeon_app_script_url', url);
+            showToast('URL Google App Script berhasil disimpan!', 'success');
+        }
+
+        function exportToCSV() {
+            let csv = 'Ring,Nama,Sex,Warna,EyeSign,Trah,Status,Ayah,Ibu\n';
+            pigeons.forEach(p => {
+                csv += `"${p.ring}","${p.name}","${p.sex}","${p.color}","${p.eye}","${p.trah}","${p.status}","${p.sire}","${p.dam}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('href', url);
+            a.setAttribute('download', `Pigeon_Loft_Database_${Date.now()}.csv`);
+            a.click();
+            showToast('File CSV Spreadsheet berhasil di-download!', 'success');
+        }
+
+        function syncToGoogleSheets() {
+            const scriptUrl = localStorage.getItem('pigeon_app_script_url');
+            if (!scriptUrl) {
+                showToast('Harap simpan URL Google Apps Script terlebih dahulu!', 'error');
+                return;
+            }
+
+            fetch(scriptUrl, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'sync_pigeons', pigeons: pigeons })
+            })
+            .then(res => res.json())
+            .then(data => {
+                showToast('Data berhasil di-sync ke Google Sheets!', 'success');
+            })
+            .catch(err => {
+                showToast('Gagal terhubung ke Google Script API.', 'error');
+            });
+        }
+
+        // Helper Modal & Toast Notifications
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `p-3 rounded-xl text-xs text-white shadow-xl border backdrop-blur-md pointer-events-auto transition flex items-center gap-2 ${
+                type === 'success' ? 'bg-emerald-900/90 border-emerald-700' : 'bg-slate-900/90 border-slate-700'
+            }`;
+            toast.innerHTML = `<i class="fa-solid fa-circle-check"></i> ${message}`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3500);
+        }
+    </script>
+</body>
+</html>
+
+```
